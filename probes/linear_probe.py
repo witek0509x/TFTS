@@ -14,7 +14,7 @@ class LinearProbe(Probe):
     from the transformer model to predict continuous labels.
     """
 
-    def __init__(self, model_path: str, input_dim: int, output_dim: int = 1, lr: float = 1e-3):
+    def __init__(self, model_path: str, input_dim: int, output_dim: int = 1, lr: float = 1e-3, benchmark=False):
         """
         Args:
             model_path (str): Path to the trained model checkpoint.
@@ -28,6 +28,7 @@ class LinearProbe(Probe):
         self.optimizer = torch.optim.Adam(self.linear.parameters(), lr=lr)
         self.load_model()  # Load the trained transformer model
         self.linear.to(self.model.device)
+        self.benchmark = benchmark
 
     def finetune(self, dataloader: DataLoader, num_epochs: int = 10):
         """
@@ -50,7 +51,6 @@ class LinearProbe(Probe):
                 y = y.float().to('cuda')
                 with torch.no_grad():  # Transformer is frozen
                     embeddings = self.model(x)
-
                 # Pass embeddings through linear model
                 preds = self.linear(embeddings)
                 loss = self.criterion(preds, y)
@@ -106,6 +106,7 @@ class LinearProbe(Probe):
                 y = dataloader.dataset.get_parameters(y)
                 y = y.float().to('cuda')
                 embeddings = self.model(x)
+                print(embeddings.shape)
                 preds = self.linear(embeddings)
                 loss = self.criterion(preds, y)
                 total_loss += loss.item()

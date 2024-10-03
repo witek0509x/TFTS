@@ -46,6 +46,18 @@ class TransformerModel(LightningModule):
         x = self.transformer_encoder(x)
         return self.linear(x[:, 0, :])  # Only return the embedding for the first token
 
+    def benchmark(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Benchmark the model with a single input data point.
+
+        Args:
+            x (torch.Tensor): Input time series.
+
+        Returns:
+            torch.Tensor: Model's prediction for the input data.
+        """
+        return self.embedding(x)[:, 0, :]
+
     def training_step(self, batch, batch_idx):
         """
         Training step for the vanilla transformer model.
