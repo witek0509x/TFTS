@@ -9,7 +9,7 @@ class PoissonProcessDataset(Dataset):
     Each intensity is treated as a class, and subseries are extracted from the generated series.
     """
 
-    def __init__(self, batch_size: int = 16, num_of_positives=4, series_length: int = 1000, subseries_length: int = 50, stride: int = 50):
+    def __init__(self, batch_size: int = 16, num_of_positives=4, series_length: int = 1000, subseries_length: int = 50, stride: int = 50, intensity_count=100):
         """
         Args:
             batch_size (int): The number of samples in each batch.
@@ -24,9 +24,15 @@ class PoissonProcessDataset(Dataset):
         self.num_of_positives = num_of_positives
 
         # Randomly select 100 different intensities from the range [1, 100]
-        self.intensities = np.random.uniform(1, 100, size=100)
+        self.intensities = np.random.uniform(1, 100, size=intensity_count)
         self.data = []
         self.labels = []
+
+    def get_parameters(self, labels):
+        res = []
+        for label in labels:
+            res.append(self.intensities[label])
+        return torch.tensor(res)
 
     def _generate_poisson_series(self, label):
         """

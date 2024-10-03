@@ -2,13 +2,14 @@ import torch
 from torch import nn
 from pytorch_lightning import LightningModule
 
+from losses.contrastive_losses.contrastive_loss_implementation import ContrastiveLoss
 
 class TransformerModel(LightningModule):
     """
     Vanilla Transformer model for embedding time series using PyTorch Lightning.
     """
 
-    def __init__(self, loss_fn, d_model=128, nhead=8, num_layers=4, dim_feedforward=512, input_dim=50, lr=1e-4):
+    def __init__(self, loss_fn=ContrastiveLoss(margin=1.0), d_model=128, nhead=8, num_layers=4, dim_feedforward=512, input_dim=50, lr=1e-4):
         """
         Args:
             loss_fn (BaseLoss): The loss function to be used in training.
