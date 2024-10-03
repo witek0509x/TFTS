@@ -50,7 +50,10 @@ class LinearProbe(Probe):
                 y = dataloader.dataset.get_parameters(y)
                 y = y.float().to('cuda')
                 with torch.no_grad():  # Transformer is frozen
-                    embeddings = self.model(x)
+                    if not self.benchmark:
+                        embeddings = self.model(x)
+                    else:
+                        embeddings = self.model.benchmark(x)
                 # Pass embeddings through linear model
                 preds = self.linear(embeddings)
                 loss = self.criterion(preds, y)
@@ -105,8 +108,10 @@ class LinearProbe(Probe):
                 x = x.float().to('cuda')
                 y = dataloader.dataset.get_parameters(y)
                 y = y.float().to('cuda')
-                embeddings = self.model(x)
-                print(embeddings.shape)
+                if not self.benchmark:
+                    embeddings = self.model(x)
+                else:
+                    embeddings = self.model.benchmark(x)
                 preds = self.linear(embeddings)
                 loss = self.criterion(preds, y)
                 total_loss += loss.item()
