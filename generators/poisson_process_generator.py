@@ -24,7 +24,7 @@ class PoissonProcessDataset(Dataset):
         self.num_of_positives = num_of_positives
 
         # Randomly select 100 different intensities from the range [1, 100]
-        self.intensities = np.random.uniform(1, 100, size=intensity_count)
+        self.intensities = np.random.uniform(0, 1, size=intensity_count)
         self.data = []
         self.labels = []
 
@@ -40,7 +40,7 @@ class PoissonProcessDataset(Dataset):
         """
         # Generate Poisson process with given intensity
         full_series = np.random.poisson(lam=self.intensities[label], size=self.series_length)
-
+        full_series = np.cumsum(full_series)
         # Extract subseries using the given stride
         result = []
         for start in range(0, self.series_length - self.subseries_length + 1, self.stride):
