@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from generators.brownian_motion_generator import BrownianMotionDataset
 from generators.poisson_process_generator import PoissonProcessDataset
 
 
@@ -16,13 +17,12 @@ def plot_poisson_samples(dataset, num_samples=5):
     plt.figure(figsize=(12, 6))
 
     # Plot num_samples for each unique intensity (class)
-    for i in range(10):
-        color = np.random.rand(3, )  # Generate a random color for each class
+    colors = [np.array([(i%2), (i%3) > 0, (i % 4) > 0]) for i in range(4)]
+    for i in range(16):
+          # Generate a random color for each class
         subseries, label = dataset[i]
         print(subseries)
-        plt.plot(subseries[0], color=color, alpha=0.2, label=f'Intensity {dataset.intensities[label]:.2f}')
-
-
+        plt.plot(subseries.reshape(-1), color=colors[i // 4], alpha=0.5)
     plt.xlabel('Time')
     plt.ylabel('Intensity')
     plt.title(f'Poisson Process Subseries Samples (per Intensity Class)')
@@ -32,7 +32,7 @@ def plot_poisson_samples(dataset, num_samples=5):
 
 if __name__ == "__main__":
     # Instantiate the dataset
-    dataset = PoissonProcessDataset(batch_size=1, series_length=100, subseries_length=50, stride=50)
+    dataset = BrownianMotionDataset(batch_size=1, series_length=100, subseries_length=50, stride=50)
 
     # Plot few samples from the dataset
     plot_poisson_samples(dataset)

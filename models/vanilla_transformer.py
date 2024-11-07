@@ -3,6 +3,8 @@ from torch import nn
 from pytorch_lightning import LightningModule
 
 from losses.contrastive_losses.contrastive_loss_implementation import ContrastiveLoss
+from models.positional_encoding import LearnablePositionalEncoding
+
 
 class TransformerModel(LightningModule):
     """
@@ -20,6 +22,7 @@ class TransformerModel(LightningModule):
             lr (float): Learning rate.
         """
         super(TransformerModel, self).__init__()
+        self.positional_encoding = LearnablePositionalEncoding(d_model, 1000)
         self.embedding = nn.Linear(input_dim, d_model)  # Embedding layer for input tokens
         self.encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward
@@ -43,6 +46,7 @@ class TransformerModel(LightningModule):
             torch.Tensor: Output embeddings of shape [batch_size, d_model].
         """
         x = self.embedding(x)
+        x = self.positional_encoding(x)
         x = self.transformer_encoder(x)
         return self.linear(x[:, 0, :])  # Only return the embedding for the first token
 
