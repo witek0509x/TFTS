@@ -11,7 +11,7 @@ class TransformerModel(LightningModule):
     Vanilla Transformer model for embedding time series using PyTorch Lightning.
     """
 
-    def __init__(self, loss_fn=ContrastiveLoss(margin=1.0), d_model=128, nhead=8, num_layers=4, dim_feedforward=512, input_dim=50, lr=1e-4):
+    def __init__(self, loss_fn=ContrastiveLoss(margin=1.0), d_model=128, nhead=8, num_layers=4, dim_feedforward=512, input_dim=1, lr=1e-4):
         """
         Args:
             loss_fn (BaseLoss): The loss function to be used in training.
@@ -34,6 +34,11 @@ class TransformerModel(LightningModule):
 
         self.train_loss_epoch = []
         self.val_loss_epoch = []
+
+        # For storing activations
+        self.activations = {}
+
+        self._register_hooks()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -78,6 +83,21 @@ class TransformerModel(LightningModule):
         loss = self.loss_fn(y_hat, y)
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
         return loss
+
+    def _register_hooks(self):
+        """
+        Register forward hooks to capture activations.
+        """
+
+        def save_activation(name):
+            def hook(module, input, output):
+                self.activations[name] = output.detach().clone()
+
+            return hook
+
+        self.embedding.register_forward_hook(save_activation("embedding"))
+        self.transformer_encoder.register_forward_hook(save_activation("transformer_encoder"))
+        self.linear.register_forward_hook(save_activation("linear"))
 
     def validation_step(self, batch, batch_idx):
         """
@@ -141,3 +161,12 @@ class TransformerModel(LightningModule):
         avg_val_loss = self.trainer.callback_metrics['val_loss'].mean().item()
         self.val_loss_epoch.append(avg_val_loss)
         print(f"Epoch {self.current_epoch + 1} - Average Validation Loss: {avg_val_loss:.4f}")
+
+    def get_activations(self):
+        """
+        Retrieve the stored activations.
+
+        Returns:
+            dict: Dictionary containing activations for registered layers.
+        """
+        return self.activations
