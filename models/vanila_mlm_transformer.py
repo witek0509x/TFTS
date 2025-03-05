@@ -12,7 +12,7 @@ from models.positional_encoding import LearnablePositionalEncoding
 
 class TransformerMLMModel(LightningModule):
 
-    def __init__(self, loss_fn=ContrastiveLoss(margin=1.0), d_model=256, nhead=8, num_layers=4, dim_feedforward=512, input_dim=1, lr=1e-4):
+    def __init__(self, loss_fn=ContrastiveLoss(margin=1.0), d_model=256, nhead=16, num_layers=8, dim_feedforward=1024, input_dim=1, lr=1e-4):
         super(TransformerMLMModel, self).__init__()
         self.positional_encoding = LearnablePositionalEncoding(d_model, 1000)
         self.embedding = nn.Linear(input_dim, d_model)
