@@ -11,7 +11,7 @@ from models.vanila_mlm_transformer import TransformerMLMModel
 def train():
     wandb.init(project="magisterka")
     wandb_logger = WandbLogger(project="magisterka", name="ESN_first_experiment")
-    model = TransformerMLMModel(lr=1e-4)
+    model = TransformerMLMModel(lr=1e-5)
 
     n_input = 1
     n_reservoir = 10
@@ -20,15 +20,15 @@ def train():
     input_scaling = 0.1
     leak_rate = 0.7
     device = 'cuda'
-    train_len = 100
+    train_len = 1000
     val_len = 10
     lr = 1e-4
 
     ESN_id = 40
 
     # Create dataset and dataloaders
-    batch_size = 16
-    series_length = 1000
+    batch_size = 128
+    series_length = 100
     tile_size = 1
     stride = 1
     padding = 0
@@ -75,13 +75,13 @@ def train():
         monitor="val_loss", save_top_k=1, mode="min", filename="transformer-{epoch:02d}-{val_loss:.6f}"
     )
     n_epoch_checkpoint = ModelCheckpoint(
-        every_n_epochs=50,
+        every_n_epochs=100,
         save_top_k=-1,
         filename="transformer-every-n-epoch-{epoch:06d}"
     )
 
     trainer = Trainer(
-        max_epochs=10000,
+        max_epochs=100000,
         callbacks=[checkpoint_callback, n_epoch_checkpoint],
         logger=wandb_logger
     )
