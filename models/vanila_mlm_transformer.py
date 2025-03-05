@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torch import nn
 from pytorch_lightning import LightningModule
-
+from torchmetrics.functional import r2_score
 
 from losses.contrastive_losses.contrastive_loss_implementation import ContrastiveLoss
 from models.positional_encoding import LearnablePositionalEncoding
@@ -12,7 +12,7 @@ from models.positional_encoding import LearnablePositionalEncoding
 
 class TransformerMLMModel(LightningModule):
 
-    def __init__(self, loss_fn=ContrastiveLoss(margin=1.0), d_model=128, nhead=8, num_layers=6, dim_feedforward=2048, input_dim=50, lr=1e-4):
+    def __init__(self, loss_fn=ContrastiveLoss(margin=1.0), d_model=256, nhead=8, num_layers=4, dim_feedforward=512, input_dim=1, lr=1e-4):
         super(TransformerMLMModel, self).__init__()
         self.positional_encoding = LearnablePositionalEncoding(d_model, 1000)
         self.embedding = nn.Linear(input_dim, d_model)
@@ -70,7 +70,9 @@ class TransformerMLMModel(LightningModule):
         x[:, masked_tokens, :] = 0
         x_hat = self(x)
         val_loss = torch.mean((x_hat[:, masked_tokens, :] - x_original[:, masked_tokens, :]) ** 2)
+        val_r2 = r2_score(x_hat[:, masked_tokens, :].flatten(), x_original[:, masked_tokens, :].flatten())
         self.log("val_loss", val_loss, on_epoch=True, prog_bar=True)
+        self.log("val_r2", val_r2, on_epoch=True, prog_bar=True)
         return val_loss
 
     def configure_optimizers(self):
