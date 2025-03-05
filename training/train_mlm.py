@@ -8,7 +8,7 @@ from generators.physics_processes.phisics_generator import PhysicsProcessDataset
 from generators.subseries_converter import EchoStateDataset
 from models.vanila_mlm_transformer import TransformerMLMModel
 
-if __name__ == "__main__":
+def train():
     wandb.init(project="magisterka")
     wandb_logger = WandbLogger(project="magisterka", name="ESN_first_experiment")
     model = TransformerMLMModel(lr=1e-4)
