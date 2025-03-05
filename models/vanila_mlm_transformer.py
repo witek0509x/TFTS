@@ -48,9 +48,15 @@ class TransformerMLMModel(LightningModule):
         masked_tokens = np.random.choice(range(x.shape[1]), int(x.shape[1] * 0.2))
         x[:, masked_tokens, :] = 0
         x_hat = self(x)
-        loss = torch.mean((x_hat[:, masked_tokens, :] - x_original[:, masked_tokens, :]) ** 2)
+        variance = torch.mean((x_hat[:, masked_tokens, :] - torch.mean(x_original)) ** 2)
+        mse = torch.mean((x_hat[:, masked_tokens, :] - x_original[:, masked_tokens, :]) ** 2)
+        normalized_variance = torch.minimum(variance, torch.var(x_original[:, masked_tokens, :]))
+        loss = mse + normalized_variance
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
-        print(loss)
+        self.log("variance", variance, on_epoch=True, prog_bar=True)
+        self.log("normalized_variance", normalized_variance, on_epoch=True, prog_bar=True)
+        self.log("mse", mse, on_epoch=True, prog_bar=True)
+        print(loss, variance, normalized_variance)
         return loss
 
     def _register_hooks(self):
@@ -69,10 +75,16 @@ class TransformerMLMModel(LightningModule):
         masked_tokens = np.random.choice(range(x.shape[1]), int(x.shape[1] * 0.2))
         x[:, masked_tokens, :] = 0
         x_hat = self(x)
-        val_loss = torch.mean((x_hat[:, masked_tokens, :] - x_original[:, masked_tokens, :]) ** 2)
+        variance = torch.mean((x_hat[:, masked_tokens, :] - torch.mean(x_original)) ** 2)
+        mse = torch.mean((x_hat[:, masked_tokens, :] - x_original[:, masked_tokens, :]) ** 2)
+        normalized_variance = torch.minimum(variance, torch.var(x_original[:, masked_tokens, :]))
+        val_loss = mse + normalized_variance
         val_r2 = r2_score(x_hat[:, masked_tokens, :].flatten(), x_original[:, masked_tokens, :].flatten())
         self.log("val_loss", val_loss, on_epoch=True, prog_bar=True)
         self.log("val_r2", val_r2, on_epoch=True, prog_bar=True)
+        self.log("variance", variance, on_epoch=True, prog_bar=True)
+        self.log("normalized_variance", normalized_variance, on_epoch=True, prog_bar=True)
+        self.log("mse", mse, on_epoch=True, prog_bar=True)
         return val_loss
 
     def configure_optimizers(self):
