@@ -50,7 +50,7 @@ class TransformerMLMModel(LightningModule):
         x_hat = self(x)
         mean_values = x_hat[:, masked_tokens, 0].mean()
         mean_values_var = x_hat[:, masked_tokens, 0].var()
-        var_values = x_hat[:, masked_tokens, 1].mean()
+        var_values = x_hat[:, masked_tokens, 0].mean()
         loss = -torch.distributions.Normal(x_hat[:, masked_tokens, 0][:, :, None], torch.exp(x_hat[:, masked_tokens, 1][:, :, None])).log_prob(
             x_original[:, masked_tokens, :]).mean()
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
@@ -76,7 +76,7 @@ class TransformerMLMModel(LightningModule):
         x[:, masked_tokens, :] = 0
         x_hat = self(x)
         mean_values = x_hat[:, masked_tokens, 0].mean()
-        var_values = x_hat[:, masked_tokens, 1].mean()
+        var_values = x_hat[:, masked_tokens, 0].mean()
         val_loss = -torch.distributions.Normal(x_hat[:, masked_tokens, 0][:, :, None], torch.exp(x_hat[:, masked_tokens, 1][:, :, None])).log_prob(
             x_original[:, masked_tokens, :]).mean()
         self.log("val_loss", val_loss, on_epoch=True, prog_bar=True)
