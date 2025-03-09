@@ -11,27 +11,30 @@ from models.vanila_mlm_transformer import TransformerMLMModel
 def train():
     wandb.init(project="magisterka")
     wandb_logger = WandbLogger(project="magisterka", name="ESN_first_experiment")
-    model = TransformerMLMModel(lr=1e-5)
+
 
     n_input = 1
     n_reservoir = 10
-    spectral_radius = 0.99
-    sparsity = 0.1
+    spectral_radius = 0.4
+    sparsity = 0.9
     input_scaling = 0.1
-    leak_rate = 0.7
+    leak_rate = 0.9
     device = 'cuda'
     train_len = 1000
     val_len = 10
-    lr = 1e-4
+    lr = 1e-5
 
-    ESN_id = 40
+    ESN_id = 41
 
     # Create dataset and dataloaders
     batch_size = 128
     series_length = 100
+    roll_every = 5
     tile_size = 1
     stride = 1
     padding = 0
+
+    model = TransformerMLMModel(lr=lr)
 
     train_dataset = EchoStateDataset(
         num_series=train_len,
@@ -48,6 +51,7 @@ def train():
         device=device,
         initial_seed=val_len,
         esn_id=ESN_id,
+        roll_every=roll_every,
         non_repeat = True
     )
     val_dataset = EchoStateDataset(
@@ -65,6 +69,7 @@ def train():
         device=device,
         esn_id=ESN_id,
         initial_seed=0,
+        roll_every=roll_every,
         non_repeat = False
     )
 

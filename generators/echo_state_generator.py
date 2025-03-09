@@ -158,13 +158,13 @@ class EchoStateNetwork(nn.Module):
 
 if __name__ == "__main__":
     n_input = 1
-    n_reservoir = 50
+    n_reservoir = 10
     spectral_radius = 0.4
     sparsity = 0.9
     input_scaling = 0.1
     leak_rate = 0.9
     echo_random_state = 41
-    random_state = 5
+    random_state = 6
     device = 'cpu'
 
     # Initialize ESN

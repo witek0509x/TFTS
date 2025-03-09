@@ -8,7 +8,7 @@ from generators.echo_state_generator import EchoStateNetwork
 class EchoStateDataset(Dataset):
     def __init__(self, num_series, series_length, tile_size, stride, padding,
                  n_input, n_reservoir, spectral_radius, sparsity, input_scaling,
-                 leak_rate, device, initial_seed=0, esn_id=0, non_repeat=False):
+                 leak_rate, device, initial_seed=0, esn_id=0, non_repeat=False, roll_every=1):
         self.num_series = num_series
         self.series_length = series_length
         self.tile_size = tile_size
@@ -18,6 +18,7 @@ class EchoStateDataset(Dataset):
 
         self.current_shift = 0
         self.non_repeat = non_repeat
+        self.roll_every = roll_every
 
         self.esn = EchoStateNetwork(
             n_input=n_input,
@@ -43,7 +44,7 @@ class EchoStateDataset(Dataset):
     def __getitem__(self, idx):
         np.random.seed(self.initial_seed + self._get_next_shift(idx))
         self.esn.reset_state()
-        series = self.esn.generate_series(self.series_length)
+        series = self.esn.generate_series(self.series_length, roll_every=self.roll_every)
 
         pad_left = [series[0]] * self.padding
         pad_right = [series[-1]] * self.padding
