@@ -51,7 +51,7 @@ class TransformerMLMModel(LightningModule):
         variance = torch.mean((x_hat[:, masked_tokens, :] - torch.mean(x_original)) ** 2)
         mse = torch.mean((x_hat[:, masked_tokens, :] - x_original[:, masked_tokens, :]) ** 2)
         normalized_variance = torch.var(x_original[:, masked_tokens, :]) - torch.minimum(variance, torch.var(x_original[:, masked_tokens, :]))
-        loss = mse + normalized_variance
+        loss = mse + normalized_variance * 0.1
         self.log("train_loss", loss, on_epoch=True, prog_bar=True)
         self.log("variance", variance, on_epoch=True, prog_bar=True)
         self.log("normalized_variance", normalized_variance, on_epoch=True, prog_bar=True)
@@ -78,7 +78,7 @@ class TransformerMLMModel(LightningModule):
         variance = torch.mean((x_hat[:, masked_tokens, :] - torch.mean(x_original)) ** 2)
         mse = torch.mean((x_hat[:, masked_tokens, :] - x_original[:, masked_tokens, :]) ** 2)
         normalized_variance = torch.var(x_original[:, masked_tokens, :]) - torch.minimum(variance, torch.var(x_original[:, masked_tokens, :]))
-        val_loss = mse + normalized_variance
+        val_loss = mse + normalized_variance * 0.1
         val_r2 = r2_score(x_hat[:, masked_tokens, :].flatten(), x_original[:, masked_tokens, :].flatten())
         self.log("val_loss", val_loss, on_epoch=True, prog_bar=True)
         self.log("val_r2", val_r2, on_epoch=True, prog_bar=True)
