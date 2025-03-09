@@ -76,7 +76,7 @@ class EchoStateNetwork(nn.Module):
         Maps [reservoir_state; input] to single output.
         """
         # The output is a single number, so W_out has shape (1, n_reservoir + n_input)
-        W_out = torch.rand(1, self.n_reservoir + self.n_input) * 2 - 1  # Uniform between -1 and 1
+        W_out = torch.rand(1, self.n_reservoir) * 2 - 1  # Uniform between -1 and 1
         return W_out
 
     def reset_state(self):
@@ -110,10 +110,10 @@ class EchoStateNetwork(nn.Module):
         self.state = updated_state
 
         # Concatenate reservoir state and input for output
-        concatenated = torch.cat((self.state, input_vector), dim=0)  # Shape: (n_reservoir + n_input, 1)
+        # concatenated = torch.cat((self.state, input_vector), dim=0)  # Shape: (n_reservoir + n_input, 1)
 
         # Compute output
-        y = torch.matmul(self.W_out, concatenated)  # Shape: (1, 1)
+        y = torch.matmul(self.W_out, self.state)  # Shape: (1, 1)
         output = y.item()  # Extract scalar
 
         # Store hidden state
@@ -121,7 +121,7 @@ class EchoStateNetwork(nn.Module):
 
         return output
 
-    def generate_series(self, steps, input_dimensionality=None):
+    def generate_series(self, steps, input_dimensionality=None, roll_every=1):
         """
         Generate a series of outputs by feeding random inputs.
 
@@ -133,12 +133,15 @@ class EchoStateNetwork(nn.Module):
         - outputs (list of float): Generated output series.
         """
         outputs = []
-        for _ in range(steps):
+        input_vector = None
+        for step in range(steps):
             # Generate a random input vector
-            if input_dimensionality is not None:
-                input_vector = np.random.randn(input_dimensionality)
-            else:
-                input_vector = np.random.randn(self.n_input)
+            if input_vector is None or step % roll_every == 0:
+                if input_dimensionality is not None:
+                    input_vector = np.random.randn(input_dimensionality)
+                else:
+                    input_vector = np.random.randn(self.n_input)
+                    print(input_vector)
             # Perform a step
             y = self.forward(input_vector)
             outputs.append(y)
@@ -155,13 +158,13 @@ class EchoStateNetwork(nn.Module):
 
 if __name__ == "__main__":
     n_input = 1
-    n_reservoir = 10
-    spectral_radius = 0.99
-    sparsity = 0.1
+    n_reservoir = 50
+    spectral_radius = 0.4
+    sparsity = 0.9
     input_scaling = 0.1
-    leak_rate = 0.7
-    echo_random_state = 40
-    random_state = 4
+    leak_rate = 0.9
+    echo_random_state = 41
+    random_state = 5
     device = 'cpu'
 
     # Initialize ESN
@@ -179,7 +182,7 @@ if __name__ == "__main__":
 
     # Generate a random series of 1000 steps
     steps = 100
-    outputs = esn.generate_series(steps)
+    outputs = esn.generate_series(steps, roll_every=5)
 
     # Retrieve hidden states
     hidden_states = esn.get_hidden_states()
