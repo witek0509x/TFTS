@@ -141,7 +141,6 @@ class EchoStateNetwork(nn.Module):
                     input_vector = np.random.randn(input_dimensionality)
                 else:
                     input_vector = np.random.randn(self.n_input)
-                    print(input_vector)
             # Perform a step
             y = self.forward(input_vector)
             outputs.append(y)
@@ -164,7 +163,7 @@ if __name__ == "__main__":
     input_scaling = 0.1
     leak_rate = 0.9
     echo_random_state = 41
-    random_state = 6
+    random_state = 5
     device = 'cpu'
 
     # Initialize ESN
