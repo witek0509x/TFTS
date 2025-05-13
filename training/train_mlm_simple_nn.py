@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 import wandb
 from generators.physics_processes.phisics_generator import PhysicsProcessDataset
 from generators.subseries_converter import EchoStateDataset
-from models.non_lernable_pos_mlm_transformer import TransformerMLMModelV2
+from models.trivial_nn import TrivialNN
 from models.vanila_mlm_transformer import TransformerMLMModel
 from utils.config_utils import (
     load_config, 
@@ -38,7 +38,7 @@ def train(config_path, resume=False, run_id=None):
     wandb_logger = setup_wandb_logger(config)
     
     # Create model
-    model = TransformerMLMModelV2(config=config)
+    model = TrivialNN(config=config)
     
     # Log hyperparameters
     log_hyperparameters(model, config)

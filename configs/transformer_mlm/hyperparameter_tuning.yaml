@@ -1,0 +1,93 @@
+# Transformer MLM Model Configuration for Hyperparameter Tuning
+# This configuration specifies ranges/options for hyperparameter tuning
+
+# Experiment settings
+experiment:
+  name: "transformer_mlm_hyperparameter_tuning"
+  project: "mlm_esn"
+  tags: ["transformer", "mlm", "echo_state", "hyperparameter_tuning"]
+  log_model: true
+
+# Model settings with tunable hyperparameters
+model:
+  d_model: 
+    values: [64, 128, 256]
+  nhead:
+    values: [4, 8, 16]
+  num_layers:
+    values: [2, 4, 8]
+  dim_feedforward:
+    values: [256, 512, 1024]
+  input_dim: 1  # Fixed
+  lr:
+    min: 1e-5
+    max: 1e-3
+    distribution: "log_uniform"
+  masking_ratio:
+    values: [0.1, 0.15, 0.2, 0.25, 0.3]
+
+# Dataset settings
+dataset:
+  # Echo State Network parameters with tunable hyperparameters
+  esn:
+    n_input: 1  # Fixed
+    n_reservoir:
+      values: [20, 50, 100]
+    spectral_radius:
+      min: 0.1
+      max: 0.9
+      distribution: "uniform"
+    sparsity:
+      min: 0.7
+      max: 0.95
+      distribution: "uniform"
+    input_scaling:
+      min: 0.05
+      max: 0.5
+      distribution: "uniform"
+    leak_rate:
+      min: 0.5
+      max: 0.99
+      distribution: "uniform"
+    esn_id: 41  # Fixed, keeps generator deterministic
+    roll_every:
+      values: [1, 5, 10]
+  
+  # Dataset parameters (mostly fixed for hyperparameter tuning)
+  train:
+    num_series: 50  # Fixed
+    series_length: 100  # Fixed
+    tile_size: 1  # Fixed
+    stride: 1  # Fixed
+    padding: 0  # Fixed
+    initial_seed: 10  # Fixed
+    non_repeat: true  # Fixed
+    batch_size:
+      values: [8, 16, 32]
+    shuffle: true  # Fixed
+  
+  val:
+    num_series: 10  # Fixed
+    series_length: 100  # Fixed
+    tile_size: 1  # Fixed
+    stride: 1  # Fixed
+    padding: 0  # Fixed
+    initial_seed: 0  # Fixed
+    non_repeat: false  # Fixed
+    batch_size:
+      values: 8
+    shuffle: false  # Fixed
+
+# Training settings
+training:
+  max_epochs: 1000  # Reduced for hyperparameter tuning
+  device: "cuda"
+  checkpoint:
+    monitor: "val_loss"
+    save_top_k: 1
+    mode: "min"
+    filename: "transformer-hparam-{epoch:02d}-{val_loss:.6f}"
+  n_epoch_checkpoint:
+    every_n_epochs: 100
+    save_top_k: -1
+    filename: "transformer-hparam-every-n-epoch-{epoch:06d}" 

@@ -1,0 +1,69 @@
+# Transformer MLM Model Small Configuration
+# For quick tests and debugging
+
+# Experiment settings
+experiment:
+  name: "transformer_mlm_small"
+  project: "mlm_esn"
+  tags: ["transformer", "mlm", "echo_state", "small"]
+  log_model: true
+
+# Model settings
+model:
+  d_model: 64
+  nhead: 4
+  num_layers: 2
+  dim_feedforward: 256
+  input_dim: 1
+  lr: 0.000001
+  masking_ratio: 0.2  # Percentage of tokens to mask during training
+
+# Dataset settings
+dataset:
+  # Echo State Network parameters
+  esn:
+    n_input: 1
+    n_reservoir: 100
+    spectral_radius: 0.9
+    sparsity: 0.1
+    input_scaling: 0.1
+    leak_rate: 0.99
+    esn_id: 41
+    roll_every: 5
+  
+  # Dataset parameters
+  train:
+    num_series: 80
+    series_length: 100
+    tile_size: 1
+    stride: 1
+    padding: 0
+    initial_seed: 10
+    non_repeat: true
+    batch_size: 8
+    shuffle: true
+  
+  val:
+    num_series: 8
+    series_length: 100
+    tile_size: 1
+    stride: 1
+    padding: 0
+    initial_seed: 0
+    non_repeat: false
+    batch_size: 8
+    shuffle: false
+
+# Training settings
+training:
+  max_epochs: 100000
+  device: "cuda"
+  checkpoint:
+    monitor: "val_loss"
+    save_top_k: 1
+    mode: "min"
+    filename: "transformer-small-{epoch:02d}-{val_loss:.6f}"
+  n_epoch_checkpoint:
+    every_n_epochs: 2000
+    save_top_k: -1
+    filename: "transformer-small-every-n-epoch-{epoch:06d}" 
