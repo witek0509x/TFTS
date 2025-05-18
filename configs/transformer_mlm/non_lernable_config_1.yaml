@@ -3,7 +3,7 @@
 
 # Experiment settings
 experiment:
-  name: "transformer_mlm_cosine_pos"
+  name: "transformer_mlm_final"
   project: "mlm_esn"
   tags: ["transformer", "mlm", "echo_state", "small"]
   log_model: true
@@ -16,7 +16,7 @@ model:
   dim_feedforward: 512
   input_dim: 1
   lr: 0.0001
-  masking_ratio: 0.1  # Percentage of tokens to mask during training
+  masking_ratio: 0.2 # Percentage of tokens to mask during training
 
 # Dataset settings
 dataset:
@@ -30,10 +30,10 @@ dataset:
     leak_rate: 0.99
     esn_id: 46
     roll_every: 1
-  
+
   # Dataset parameters
   train:
-    num_series: 200
+    num_series: 2000
     series_length: 100
     tile_size: 1
     stride: 1
@@ -42,8 +42,8 @@ dataset:
     non_repeat: false
     batch_size: 32
     shuffle: false
-    reset_every: 1500
-  
+    reset_every: 15000
+
   val:
     num_series: 100
     series_length: 100
@@ -57,14 +57,10 @@ dataset:
 
 # Training settings
 training:
-  max_epochs: 800
+  max_epochs: 8000
   device: "cuda"
   checkpoint:
     monitor: "val_loss"
     save_top_k: 1
     mode: "min"
     filename: "transformer-non-learnable-{epoch:02d}-{val_loss:.6f}"
-  n_epoch_checkpoint:
-    every_n_epochs: 50
-    save_top_k: -1
-    filename: "transformer-non-learnable-every-n-epoch-{epoch:06d}"

@@ -3,7 +3,7 @@
 
 # Experiment settings
 experiment:
-  name: "transformer_mlm_cosine_pos"
+  name: "transformer_final"
   project: "mlm_esn"
   tags: ["transformer", "mlm", "echo_state", "small"]
   log_model: true
@@ -15,7 +15,7 @@ model:
   num_layers: 4
   dim_feedforward: 512
   input_dim: 1
-  lr: 0.00001
+  lr: 0.001
   masking_ratio: 0.2 # Percentage of tokens to mask during training
 
 # Dataset settings
@@ -57,7 +57,7 @@ dataset:
 
 # Training settings
 training:
-  max_epochs: 80
+  max_epochs: 8000
   device: "cuda"
   checkpoint:
     monitor: "val_loss"

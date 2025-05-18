@@ -2,15 +2,14 @@ import argparse
 import os
 
 from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import WandbLogger
+
 from torch.utils.data import DataLoader
 
+import torch
+
 import wandb
-from generators.physics_processes.phisics_generator import PhysicsProcessDataset
 from generators.subseries_converter import EchoStateDataset
 from models.non_lernable_pos_mlm_transformer import TransformerMLMModelV2
-from models.vanila_mlm_transformer import TransformerMLMModel
 from utils.config_utils import (
     load_config, 
     initialize_wandb, 
@@ -21,7 +20,67 @@ from utils.config_utils import (
 )
 
 
-def train(config_path, resume=False, run_id=None):
+def download_model_and_config(run_id):
+    """
+    Download model and config from wandb.
+
+    Args:
+        run_id: wandb run ID
+
+    Returns:
+        model_path: Path to the downloaded model
+        config: Model configuration
+    """
+    # Initialize wandb
+    api = wandb.Api()
+    run = api.run(f"mlm_esn/{run_id}")
+
+    # Get config
+    config = run.config
+
+    # Download best model
+    artifact = api.artifact(f"mlm_esn/model-{run_id}:best")
+    model_dir = artifact.download()
+
+    # Find the model file
+    model_files = [f for f in os.listdir(model_dir) if f.endswith('.ckpt')]
+    if not model_files:
+        raise FileNotFoundError(f"No checkpoint files found in {model_dir}")
+
+    model_path = os.path.join(model_dir, model_files[0])
+    print(f"Downloaded model: {model_path}")
+
+    return model_path, config
+
+
+def load_model(model_path, config):
+    """
+    Load the transformer model.
+
+    Args:
+        model_path: Path to the model checkpoint
+        config: Model configuration
+
+    Returns:
+        Loaded model
+    """
+    model = TransformerMLMModelV2(config=config)
+
+    # Load state dict
+    checkpoint = torch.load(model_path, map_location='cpu')
+
+    # Handle different checkpoint formats
+    if 'state_dict' in checkpoint:
+        state_dict = checkpoint['state_dict']
+    else:
+        state_dict = checkpoint
+
+    model.load_state_dict(state_dict)
+    model.eval()
+
+    return model
+
+def train(config_path=None, resume=False, run_id=None):
     """
     Train a TransformerMLMModel using configuration from a YAML file.
     
@@ -34,12 +93,19 @@ def train(config_path, resume=False, run_id=None):
     config = load_config(config_path)
     
     # Initialize wandb
-    initialize_wandb(config, resume=resume, id=run_id)
+    initialize_wandb(config)
     wandb_logger = setup_wandb_logger(config)
     
     # Create model
-    model = TransformerMLMModelV2(config=config)
-    
+    if resume:
+        model_path, config_d = download_model_and_config(run_id)
+        if config is None:
+            model = load_model(model_path, config_d)
+        else:
+            model = load_model(model_path, config)
+    else:
+        model = TransformerMLMModelV2(config=config)
+
     # Log hyperparameters
     log_hyperparameters(model, config)
     
