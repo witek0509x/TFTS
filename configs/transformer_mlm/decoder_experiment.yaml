@@ -1,0 +1,64 @@
+# Transformer Decoder Model Small Configuration
+# For autoregressive sequence regression
+
+experiment:
+  name: "transformer_decoder_autoregressive"
+  project: "mlm_esn"
+  tags: ["transformer", "autoregressive", "echo_state", "small"]
+  log_model: true
+
+model:
+  d_model: 128
+  nhead: 8
+  num_layers: 4
+  dim_feedforward: 512
+  input_dim: 1
+  lr: 0.0001
+
+# Dataset configuration
+dataset:
+  esn:
+    n_input: 1
+    n_reservoir: 100
+    spectral_radius: 0.7
+    sparsity: 0.1
+    input_scaling: 0.2
+    leak_rate: 0.5
+    esn_id: 46
+    roll_every: 1
+
+  train:
+    num_series: 2000
+    series_length: 100
+    tile_size: 1
+    stride: 1
+    padding: 0
+    initial_seed: 1000
+    non_repeat: false
+    batch_size: 64
+    shuffle: false
+    reset_every: 10000
+
+  val:
+    num_series: 1000
+    series_length: 100
+    tile_size: 1
+    stride: 1
+    padding: 0
+    initial_seed: 0
+    non_repeat: false
+    batch_size: 64
+    shuffle: false
+
+training:
+  max_epochs: 8000
+  device: "cuda"
+  checkpoint:
+    monitor: "val_loss"
+    save_top_k: 1
+    mode: "min"
+    filename: "transformer-decoder-{epoch:02d}-{val_loss:.6f}"
+  n_epoch_checkpoint:
+    every_n_epochs: 50
+    save_top_k: -1
+    filename: "transformer-decoder-every-n-epoch-{epoch:06d}"
