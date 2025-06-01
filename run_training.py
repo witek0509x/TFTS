@@ -8,7 +8,7 @@ if __name__ == '__main__':
         "--model_type", 
         type=str, 
         default="mlm",
-        choices=["mlm"],
+        choices=["mlm", "decoder"],
         help="Type of model to train"
     )
     parser.add_argument(
@@ -35,6 +35,8 @@ if __name__ == '__main__':
     # Import the appropriate training module based on model_type
     if args.model_type == "mlm":
         from training.train_mlm import train
+    if args.model_type == "decoder":
+        from training.train_decoder import train
     else:
         raise ValueError(f"Unknown model type: {args.model_type}")
     

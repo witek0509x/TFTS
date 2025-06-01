@@ -29,8 +29,14 @@ class TransformerDecoderModel(LightningModule):
 
         self.positional_encoding = LearnablePositionalEncoding(d_model, 1000)
         self.embedding = nn.Linear(input_dim, d_model)
-        decoder_layer = nn.TransformerDecoderLayer(d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward)
-        self.transformer_decoder = nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
+        self.decoder_layer = nn.TransformerDecoderLayer(
+            d_model=d_model,
+            nhead=nhead,
+            dim_feedforward=dim_feedforward,
+            batch_first=True,
+            norm_first=True,
+        )
+        self.transformer_decoder = nn.TransformerDecoder(self.decoder_layer, num_layers=num_layers)
         self.linear = nn.Linear(d_model, input_dim)
 
         self.d_model = d_model
@@ -44,18 +50,24 @@ class TransformerDecoderModel(LightningModule):
         self.val_loss_epoch = []
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.embedding(x)
-        x = self.positional_encoding(x)
+        x = self.embedding(x)  # (B, T, D)
+        x = self.positional_encoding(x)  # (B, T, D)
 
         seq_len = x.size(1)
-        causal_mask = torch.triu(
-            torch.full((seq_len, seq_len), float('-inf'), device=x.device),
-            diagonal=1
-        )
+
+        # Use batch-first compatible TransformerDecoder
+        tgt_mask = nn.Transformer.generate_square_subsequent_mask(seq_len).to(x.device)
+
+        # Dummy memory (not used in decoder-only setup)
         memory = torch.zeros(x.size(0), seq_len, self.d_model, device=x.device)
 
-        x = self.transformer_decoder(tgt=x, memory=memory, tgt_mask=causal_mask)
-        return self.linear(x)
+        x = self.transformer_decoder(
+            tgt=x,
+            memory=memory,
+            tgt_mask=tgt_mask  # This fixes the attention masking issue
+        )
+
+        return self.linear(x)  # (B, T, input_dim)
 
     def training_step(self, batch, batch_idx):
         x, _ = batch
@@ -80,6 +92,7 @@ class TransformerDecoderModel(LightningModule):
 
     def validation_step(self, batch, batch_idx):
         x, _ = batch
+        print(x.shape)
         x_input = x[:, :-1, :]
         y_target = x[:, 1:, :]
 

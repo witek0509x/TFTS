@@ -16,7 +16,7 @@ from utils.config_utils import (
     log_model_to_wandb
 )
 from models.vanila_decoder_transformer import TransformerDecoderModel
-
+print("training decoder")
 def download_model_and_config(run_id):
     api = wandb.Api()
     run = api.run(f"mlm_esn/{run_id}")
