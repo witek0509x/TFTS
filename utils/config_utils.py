@@ -82,7 +82,7 @@ def setup_model_checkpoint_callback(config: Dict[str, Any], log_to_wandb: bool =
     
     # Additional checkpoint every N epochs
     n_epoch_checkpoint = ModelCheckpoint(
-        every_n_epochs=n_epoch_checkpoint_config.get('every_n_epochs', 200),
+        every_n_epochs=n_epoch_checkpoint_config.get('every_n_epochs', 1),
         save_top_k=n_epoch_checkpoint_config.get('save_top_k', -1),
         filename=n_epoch_checkpoint_config.get('filename', 'transformer-every-n-epoch-{epoch:06d}')
     )
