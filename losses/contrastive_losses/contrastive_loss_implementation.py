@@ -54,6 +54,22 @@ class ContrastiveLoss(BaseContrastiveLoss):
 
         return loss
 
+    def accuracy_at_one(self, y_pred: torch.Tensor, classes: torch.Tensor) -> float:
+        correct = 0
+        batch_size = y_pred.size(0)
+
+        for i in range(batch_size):
+            # Find the closest embedding in the batch
+            distances = F.pairwise_distance(y_pred[i].unsqueeze(0), y_pred)
+            closest_idx = distances.argmin().item()
+
+            # Check if the closest embedding belongs to the same class
+            if classes[i] == classes[closest_idx]:
+                correct += 1
+        # Calculate accuracy
+        accuracy = correct / batch_size
+        return accuracy
+
 
 if __name__ == '__main__':
     # Define a contrastive loss function

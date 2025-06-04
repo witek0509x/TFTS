@@ -49,7 +49,7 @@ class TransformerMLMModel(LightningModule):
         self.positional_encoding = LearnablePositionalEncoding(d_model, 1000)
         self.embedding = nn.Linear(input_dim, d_model)
         self.encoder_layer = nn.TransformerEncoderLayer(
-            d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward
+            d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward, batch_first=True
         )
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers)
         self.linear = nn.Linear(d_model, input_dim)

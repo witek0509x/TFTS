@@ -1,0 +1,51 @@
+# Experiment settings
+experiment:
+  name: "brownian_motion_experiment"
+  project: "stochastic"
+  tags: []
+  log_model: true
+
+# Model settings
+model:
+  d_model: 128
+  nhead: 8
+  num_layers: 4
+  dim_feedforward: 512
+  input_dim: 50
+  lr: 0.0001
+
+training:
+  max_epochs: 8000
+  device: "cuda"
+  checkpoint:
+    monitor: "val_loss"
+    save_top_k: 1
+    mode: "min"
+    filename: "transformer-non-learnable-{epoch:02d}-{val_loss:.6f}"
+
+dataset:
+  train:
+    generator_type: "BrownianMotion"
+    generator_params:
+      batch_size: 64
+      num_of_positives: 4
+      series_length: 1000
+      subseries_length: 50
+      stride: 50
+      intensity_count: 10000
+      ranges:
+        means: [0, 1]
+        std: [0.5, 10.0]
+  val:
+    generator_type: "BrownianMotion"
+    generator_params:
+      batch_size: 128
+      num_of_positives: 4
+      series_length: 1000
+      subseries_length: 50
+      stride: 50
+      intensity_count: 1024
+      ranges:
+        means: [0, 1]
+        std: [0.5, 10.0]
+

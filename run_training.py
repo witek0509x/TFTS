@@ -1,5 +1,6 @@
 import argparse
 import importlib
+from training.stochastic_process_training import train as stochastic_train
 
 if __name__ == '__main__':
     # Create parser for command line arguments
@@ -8,7 +9,7 @@ if __name__ == '__main__':
         "--model_type", 
         type=str, 
         default="mlm",
-        choices=["mlm", "decoder"],
+        choices=["mlm", "decoder", "stochastic"],
         help="Type of model to train"
     )
     parser.add_argument(
@@ -35,10 +36,13 @@ if __name__ == '__main__':
     # Import the appropriate training module based on model_type
     if args.model_type == "mlm":
         from training.train_mlm import train
-    if args.model_type == "decoder":
+    elif args.model_type == "decoder":
         from training.train_decoder import train
+    elif args.model_type == "stochastic":
+        train = stochastic_train
     else:
         raise ValueError(f"Unknown model type: {args.model_type}")
     
     # Call the train function with the parsed arguments
     train(args.config, args.resume, args.run_id)
+

@@ -25,7 +25,7 @@ class TransformerModel(LightningModule):
         self.positional_encoding = LearnablePositionalEncoding(d_model, 1000)
         self.embedding = nn.Linear(input_dim, d_model)  # Embedding layer for input tokens
         self.encoder_layer = nn.TransformerEncoderLayer(
-            d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward
+            d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward, batch_first=True
         )
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers)
         self.linear = nn.Linear(d_model, d_model)  # Projection layer for embeddings
@@ -113,7 +113,9 @@ class TransformerModel(LightningModule):
         x, y = batch
         y_hat = self(x)
         val_loss = self.loss_fn(y_hat, y)
+        acc_at_one = self.loss_fn.accuracy_at_one(y_hat, y)
         self.log("val_loss", val_loss, on_epoch=True, prog_bar=True)
+        self.log("acc_at_one", acc_at_one, on_epoch=True, prog_bar=True)
         return val_loss
 
     def configure_optimizers(self):

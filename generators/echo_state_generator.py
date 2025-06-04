@@ -2,10 +2,11 @@ import torch
 import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
+import einops
 
 class EchoStateNetwork(nn.Module):
     def __init__(self, n_input, n_reservoir, spectral_radius=0.95, sparsity=0.1,
-                 input_scaling=1.0, leak_rate=1.0, device='cpu', random_state_torch=42, random_state_numpy=42):
+                 input_scaling=1.0, leak_rate=1.0, device='cpu', random_state_torch=42, random_state_numpy=42, store_state=False):
         """
         Initialize the Echo State Network (ESN).
 
@@ -27,6 +28,7 @@ class EchoStateNetwork(nn.Module):
         self.input_scaling = input_scaling
         self.leak_rate = leak_rate
         self.device = device
+        self.store_state = store_state
 
 
         torch.manual_seed(random_state_torch)
@@ -42,6 +44,7 @@ class EchoStateNetwork(nn.Module):
 
         # List to store hidden states
         self.hidden_states = []
+        self.input = None
 
     def _initialize_input_weights(self):
         """
@@ -121,6 +124,14 @@ class EchoStateNetwork(nn.Module):
 
         return output
 
+    def infer_but_no_state_change(self, input_vector): #
+        input_vector = input_vector.to(self.device)  # Shape: (n_input, batch_size)
+
+        pre_activation = torch.matmul(self.W_in, input_vector) + torch.matmul(self.W, self.state)
+        updated_state = (1 - self.leak_rate) * self.state + self.leak_rate * torch.tanh(pre_activation)
+        y = torch.matmul(self.W_out, updated_state)  # Shape: (1, 1)
+        return y
+
     def generate_series(self, steps, input_dimensionality=None, roll_every=1):
         """
         Generate a series of outputs by feeding random inputs.
@@ -134,6 +145,7 @@ class EchoStateNetwork(nn.Module):
         """
         outputs = []
         input_vector = None
+        self.input = []
         for step in range(steps):
             # Generate a random input vector
             if input_vector is None or step % roll_every == 0:
@@ -142,6 +154,7 @@ class EchoStateNetwork(nn.Module):
                 else:
                     input_vector = np.random.randn(self.n_input)
             # Perform a step
+            self.input.append(input_vector)
             y = self.forward(input_vector)
             outputs.append(y)
         return outputs

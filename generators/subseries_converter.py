@@ -11,7 +11,7 @@ class EchoStateDataset(Dataset):
                  num_series=100, series_length=100, tile_size=1, stride=1, padding=0,
                  n_input=1, n_reservoir=50, spectral_radius=0.4, sparsity=0.9, input_scaling=0.1,
                  leak_rate=0.9, device='cuda', initial_seed=0, esn_id=0, non_repeat=False, roll_every=1, training=True,
-                 reset_every=-1):
+                 reset_every=-1, esn_store_state=False):
         """
         Dataset for Echo State Network generated data.
         
@@ -54,6 +54,7 @@ class EchoStateDataset(Dataset):
             leak_rate = esn_config.get('leak_rate', leak_rate)
             esn_id = esn_config.get('esn_id', esn_id)
             roll_every = esn_config.get('roll_every', roll_every)
+            esn_store_state = esn_config.get('esn_store_state', esn_store_state)
             
             # Dataset parameters - try train config first, then val config
             # This allows the caller to specify which type of dataset this is
@@ -104,7 +105,8 @@ class EchoStateDataset(Dataset):
             'input_scaling': input_scaling,
             'leak_rate': leak_rate,
             'esn_id': esn_id,
-            'roll_every': roll_every
+            'roll_every': roll_every,
+            'esn_store_state': esn_store_state,
         }
         
         # Store dataset parameters for logging/reproducibility
@@ -128,7 +130,8 @@ class EchoStateDataset(Dataset):
             input_scaling=input_scaling,
             leak_rate=leak_rate,
             device=device,
-            random_state_torch=esn_id
+            random_state_torch=esn_id,
+            store_state=esn_store_state
         )
 
     def __len__(self):
@@ -180,7 +183,7 @@ if __name__ == "__main__":
     # Example usage with config
     from utils.config_utils import load_config
     
-    config = load_config("/home/wojciech/private/magisterka/TFTS/configs/transformer_mlm/non_lernable_config_2.yaml")
+    config = load_config("/home/wojciech/private/magisterka/TFTS/configs/transformer_mlm/final_experiment_config.yaml")
     
     # Create train and validation datasets
     train_dataset = EchoStateDataset(config)
@@ -189,7 +192,7 @@ if __name__ == "__main__":
     # Sample data
 
     import matplotlib.pyplot as plt
-    for i in range(5):
+    for i in range(20):
         x, y = train_dataset[i]
         plt.plot(x, alpha=0.3)
         print(f"Generated data shape: {x.shape}")

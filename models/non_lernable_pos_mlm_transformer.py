@@ -6,7 +6,7 @@ from torch import nn
 from pytorch_lightning import LightningModule
 from torch.utils.data import DataLoader
 from torchmetrics.functional import r2_score
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 
 from generators.subseries_converter import EchoStateDataset
 from losses.contrastive_losses.contrastive_loss_implementation import ContrastiveLoss
@@ -82,6 +82,12 @@ class TransformerMLMModelV2(LightningModule):
         x = self.transformer_encoder(x)
         return self.linear(x)
 
+    def forward_with_embbeding(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        x = self.embedding(x)
+        x = self.positional_encoding(x)
+        x = self.transformer_encoder(x)
+        return self.linear(x), x
+
     def benchmark(self, x: torch.Tensor) -> torch.Tensor:
         return self.embedding(x)
 
@@ -97,13 +103,6 @@ class TransformerMLMModelV2(LightningModule):
         mask_col = mask_col.unsqueeze(0).expand(x.shape[0], -1).unsqueeze(-1).to('cuda')
 
         x = torch.cat([x, mask_col], dim=-1)
-        # Forward pass with masked input
-        # import matplotlib.pyplot as plt
-        # fig, (ax1, ax2) = plt.subplots(1, 2)
-        # ax1.plot(x[0, :, 0].flatten().detach().cpu())
-        # ax1.plot(x_original[0].flatten().detach().cpu())
-        # ax2.plot(x[0, :, 1].flatten().detach().cpu())
-        # plt.show()
         x_hat = self(x)
 
         # Calculate metrics
