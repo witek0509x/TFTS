@@ -27,7 +27,7 @@ dataset:
   train:
     generator_type: "BrownianMotion"
     generator_params:
-      batch_size: 64
+      batch_size: 16
       num_of_positives: 4
       series_length: 1000
       subseries_length: 50
@@ -39,7 +39,7 @@ dataset:
   val:
     generator_type: "BrownianMotion"
     generator_params:
-      batch_size: 128
+      batch_size: 16
       num_of_positives: 4
       series_length: 1000
       subseries_length: 50

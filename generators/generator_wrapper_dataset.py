@@ -10,7 +10,7 @@ class GeneratorWrapperDataset:
     Wrapper dataset class that parses a YAML configuration and initializes the appropriate generator.
     """
 
-    def __init__(self, config_path, mode="train"):
+    def __init__(self, config_path, config=None, mode="train"):
         """
         Initialize the wrapper dataset by parsing the YAML configuration file.
 
@@ -18,8 +18,9 @@ class GeneratorWrapperDataset:
             config_path (str): Path to the YAML configuration file.
             mode (str): Mode of the dataset, either "train" or "val".
         """
-        with open(config_path, 'r') as config_file:
-            config = yaml.safe_load(config_file)
+        if config is None:
+            with open(config_path, 'r') as config_file:
+                config = yaml.safe_load(config_file)
 
         dataset_config = config.get("dataset", {}).get(mode, {})
         generator_type = dataset_config.get("generator_type")
@@ -44,7 +45,7 @@ class GeneratorWrapperDataset:
 # Usage Example
 if __name__ == "__main__":
     # Example configuration file path
-    config_path = "/home/wojciech/private/magisterka/TFTS/configs/stochastic/brownian_motion_config.yaml"
+    config_path = "/home/wojciech/private/magisterka/TFTS/configs/stochastic/ornstein_uhlenbeck_config.yaml"
 
     # Create the wrapper dataset for training
     train_dataset = GeneratorWrapperDataset(config_path, mode="train")
@@ -56,8 +57,16 @@ if __name__ == "__main__":
         unique_labels = labels.unique()
         colors = cm.rainbow(np.linspace(0, 1, len(unique_labels)))
         label_to_color = {label.item(): color for label, color in zip(unique_labels, colors)}
-
+        used_labels = []
         for trajectory, label in zip(data, labels):
-            plt.plot(trajectory.flatten().numpy(), color=label_to_color[label.item()], alpha=0.3, label=f"Class {label.item()}")
+            if label.item() not in used_labels:
+                theta, _, sigma = train_dataset.dataset.get_parameters([label.item()])[0]
+                plt.plot(trajectory.flatten().numpy()[:100], color=label_to_color[label.item()], alpha=0.5, label=f"$\\theta={theta:.2f}, \\sigma={sigma:.2f}$")
+            else:
+                plt.plot(trajectory.flatten().numpy()[:100], color=label_to_color[label.item()], alpha=0.5)
+            used_labels.append(label.item())
+        plt.xlabel('Time Step')
+        plt.ylabel('Value')
+        plt.legend()
         plt.show()
         break

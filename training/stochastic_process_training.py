@@ -16,11 +16,11 @@ from utils.config_utils import (
 )
 from models.vanilla_transformer import TransformerModel
 
-def download_model_and_config(run_id):
+def download_model_and_config(run_id, version='best'):
     api = wandb.Api()
     run = api.run(f"stochastic/{run_id}")
     config = run.config
-    artifact = api.artifact(f"stochastic/model-{run_id}:best")
+    artifact = api.artifact(f"stochastic/model-{run_id}:{version}")
     model_dir = artifact.download()
     model_files = [f for f in os.listdir(model_dir) if f.endswith('.ckpt')]
     if not model_files:

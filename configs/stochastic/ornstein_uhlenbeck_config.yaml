@@ -27,8 +27,8 @@ dataset:
   train:
     generator_type: "OrnsteinUhlenbeck"
     generator_params:
-      batch_size: 64
-      num_of_positives: 4
+      batch_size: 4
+      num_of_positives: 1
       series_length: 1000
       subseries_length: 50
       stride: 50

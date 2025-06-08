@@ -51,7 +51,7 @@ class TransformerMLMModel(LightningModule):
         self.encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward, batch_first=True
         )
-        self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers)
+        self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers, enable_nested_tensor=False)
         self.linear = nn.Linear(d_model, input_dim)
         
         # Set the loss function

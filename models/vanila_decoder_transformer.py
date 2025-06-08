@@ -69,6 +69,26 @@ class TransformerDecoderModel(LightningModule):
 
         return self.linear(x)  # (B, T, input_dim)
 
+    def forward_embb(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.embedding(x)  # (B, T, D)
+        x = self.positional_encoding(x)  # (B, T, D)
+
+        seq_len = x.size(1)
+
+        # Use batch-first compatible TransformerDecoder
+        tgt_mask = nn.Transformer.generate_square_subsequent_mask(seq_len).to(x.device)
+
+        # Dummy memory (not used in decoder-only setup)
+        memory = torch.zeros(x.size(0), seq_len, self.d_model, device=x.device)
+
+        x = self.transformer_decoder(
+            tgt=x,
+            memory=memory,
+            tgt_mask=tgt_mask  # This fixes the attention masking issue
+        )
+
+        return x  # (B, T, input_dim)
+
     def training_step(self, batch, batch_idx):
         x, _ = batch
         x_input = x[:, :-1, :]

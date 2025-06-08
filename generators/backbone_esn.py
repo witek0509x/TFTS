@@ -20,6 +20,7 @@ class EchoStateNetwork(nn.Module):
         - device (str): Device to run the ESN on ('cpu' or 'cuda').
         - random_state (int or None): Seed for reproducibility.
         """
+        print("running backbone ESN")
         super(EchoStateNetwork, self).__init__()
         self.n_input = n_input
         self.n_reservoir = n_reservoir
@@ -38,6 +39,7 @@ class EchoStateNetwork(nn.Module):
         self.W_in = self._initialize_input_weights().to(self.device)
         self.W = self._initialize_reservoir().to(self.device)
         self.W_out = self._initialize_output_weights().to(self.device)
+        self.new_W_out = self._initialize_output_weights().to(self.device)
 
         # Initialize reservoir state
         self.reset_state()
@@ -117,12 +119,14 @@ class EchoStateNetwork(nn.Module):
 
         # Compute output
         y = torch.matmul(self.W_out, self.state)  # Shape: (1, 1)
+        y_new = torch.matmul(self.new_W_out, self.state)  # Shape: (1, 1)
         output = y.item()  # Extract scalar
+        output_new = y_new.item()
 
         # Store hidden state
         self.hidden_states.append(self.state.detach())
 
-        return output
+        return output, output_new
 
     def infer_but_no_state_change(self, input_vector): #
         input_vector = input_vector.to(self.device)  # Shape: (n_input, batch_size)
@@ -144,6 +148,7 @@ class EchoStateNetwork(nn.Module):
         - outputs (list of float): Generated output series.
         """
         outputs = []
+        outputs_new = []
         input_vector = None
         self.input = []
         for step in range(steps):
@@ -155,9 +160,10 @@ class EchoStateNetwork(nn.Module):
                     input_vector = np.random.randn(self.n_input)
             # Perform a step
             self.input.append(input_vector)
-            y = self.forward(input_vector)
+            y, y_new = self.forward(input_vector)
             outputs.append(y)
-        return outputs
+            outputs_new.append(y_new)
+        return outputs, outputs_new
 
     def get_hidden_states(self):
         """
